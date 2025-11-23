@@ -20,3 +20,4 @@ mlflow.db
 venv/
 __pycache__/
 *.pyc
+/full_transcripts_output

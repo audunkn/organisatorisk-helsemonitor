@@ -28,7 +28,7 @@ DRIVER_COLUMNS = [
     "Human_Capital", "Demand_Patterns", "Pricing_Power", "Strategic_Execution"
 ]
 
-# --- Hjelpefunksjoner (Uendret) ---
+# --- Hjelpefunksjoner ---
 
 def load_prompt(filename):
     """Henter promptteksten fra den dedikerte mappen."""
@@ -41,30 +41,45 @@ def load_prompt(filename):
         raise
 
 def get_stability_score(transcript_text):
+    """
+    Kjører analysen ved å bruke prompt fra business_stability_prompt.txt
+    
+    KORRIGERT RENSING FOR Å HÅNDTERE MARKDOWN!
+    """
     model = genai.GenerativeModel(MODEL_NAME)
     prompt_template = load_prompt('business_stability_prompt.txt')
     prompt = prompt_template.format(transcript_text=transcript_text) 
+    
     try:
         response = model.generate_content(prompt)
-        clean_score = response.text.strip().replace('+', '') 
+        # --- NY RENSING: Fjerner * (Markdown bold) og punktum . ---
+        clean_score = response.text.strip().replace('+', '').replace('*', '').replace('.', '')
+        # -----------------------------------------------------------------
         return int(clean_score)
     except Exception as e:
         print(f"Feil under stabilitets-score: {e}")
         return 0
 
 def get_driver_analysis(transcript_text, stability_score):
+    """
+    Kjører analysen ved å bruke prompt fra driver_analysis_prompt.txt
+    """
     model = genai.GenerativeModel(MODEL_NAME)
     prompt_template = load_prompt('driver_analysis_prompt.txt')
     prompt = prompt_template.format(stability_score=stability_score, transcript_text=transcript_text)
+    
     try:
         response = model.generate_content(prompt)
+        # Rensing av tekst for å sikre at vi kun får tallene
+        # Merk: Her må koden håndtere en streng som "-2, -1, 0, ..."
+        # Vi antar at AI følger instruksjonen om rent format.
         return response.text.strip()
     except Exception as e:
         print(f"Feil under driver-analyse: {e}")
         return "0,0,0,0,0,0,0"
 
 
-# --- HOVEDFUNKSJON MED MLFLOW IMPLEMENTERING ---
+# --- HOVEDFUNKSJON MED MLFLOW IMPLEMENTERING (Uendret i logikk) ---
 
 def main():
     mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
@@ -126,7 +141,7 @@ def main():
             results.append(row)
             time.sleep(2) 
 
-        # --- 3. Lagre og Logg Resultater (MED DRIVER METRICS) ---
+        # --- 3. Lagre og Logg Resultater ---
         df = pd.DataFrame(results)
         output_filename = "analyse_resultater.csv"
         df.to_csv(output_filename, index=False, sep=';') 

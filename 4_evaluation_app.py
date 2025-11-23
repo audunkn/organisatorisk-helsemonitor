@@ -23,8 +23,10 @@ def last_data():
 
 def last_logg():
     if os.path.exists(LOGG_FIL):
-        return pd.read_csv(LOGG_FIL)
-    return pd.DataFrame(columns=['Filnavn', 'Kategori', 'Model_Score', 'Human_Score'])
+        df = pd.read_csv(LOGG_FIL)
+        if 'Kommentar' not in df.columns: df['Kommentar'] = ""
+        return df
+    return pd.DataFrame(columns=['Filnavn', 'Kategori', 'Model_Score', 'Human_Score', 'Kommentar'])
 
 def beregn_metrikker(logg_df):
     if logg_df.empty: return 0, 0, 0, 0
@@ -68,8 +70,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🕵️ Human-in-loop evaluering")
-st.markdown("Vurder risikoen basert på teksten. AI-ens mening er skjult for å sikre objektivitet.")
+st.title("🕵️ Human-in-the-loop evaluering")
+st.markdown("Vurder risikoen basert på teksten. Fasit-vurderingene **og kommentarene** brukes for å forbedre AI-ens instruksjoner.")
 
 df = last_data()
 logg_df = last_logg()
@@ -132,21 +134,21 @@ with col2:
         nye_data = []
         options = [-2, -1, 0, 1, 2]
         
-        def render_rad(kategori, tittel_suffix=""):
-            # Vi henter AI-score kun for å lagre den i loggen, viser den IKKE til brukeren
+        # --- FUNKSJON FOR Å RENDRE EN VURDERINGSRAD ---
+        def render_rad(kategori, valgt_fil, logg_df, tittel_suffix=""):
             ai_val = int(rad[kategori])
             
             st.markdown(f"#### {kategori} {tittel_suffix}")
             
-            # --- ENDRING: Ingen AI-visning her ---
-
-            # Historikk sjekk
-            # Default er nå 0 (Nøytral) for å unngå bias, med mindre du har evaluert før
+            # Historikk/Default
             default_val = 0 
-            if not logg_df.empty:
-                eksisterende = logg_df[(logg_df['Filnavn'] == valgt_fil) & (logg_df['Kategori'] == kategori)]
-                if not eksisterende.empty:
-                    default_val = int(eksisterende.iloc[-1]['Human_Score'])
+            kommentar_historikk = ""
+            
+            eksisterende_rad = logg_df[(logg_df['Filnavn'] == valgt_fil) & (logg_df['Kategori'] == kategori)]
+            if not eksisterende_rad.empty:
+                siste_rad = eksisterende_rad.iloc[-1]
+                default_val = int(siste_rad['Human_Score'])
+                kommentar_historikk = siste_rad.get('Kommentar', "")
 
             # Radio Input
             human_val = st.radio(
@@ -158,26 +160,44 @@ with col2:
                 horizontal=True
             )
             
-            nye_data.append({'Filnavn': valgt_fil, 'Kategori': kategori, 'Model_Score': ai_val, 'Human_Score': human_val})
+            # Kommentar Input (Endret til text_area og høyde)
+            kommentar_tekst = st.text_area(
+                "Begrunnelse:", 
+                value=kommentar_historikk, 
+                key=f"kommentar_{valgt_fil}_{kategori}",
+                height=70
+            )
+            
+            return ai_val, human_val, kommentar_tekst
 
-        # --- 1. OVERORDNET KONKLUSJON ---
+        # --- SAMLER INN ALLE DATA ---
+        
+        # 1. OVERORDNET KONKLUSJON
         with st.container(border=True):
             st.info("📊 **Overordnet Konklusjon**")
-            render_rad(KATEGORIER[0])
+            ai_score, human_score, comment = render_rad(KATEGORIER[0], valgt_fil, logg_df)
+            nye_data.append({'Filnavn': valgt_fil, 'Kategori': KATEGORIER[0], 'Model_Score': ai_score, 'Human_Score': human_score, 'Kommentar': comment})
 
-        # Skille
         st.write("")
         st.markdown("👇 **Underliggende Drivere**")
         st.write("")
 
-        # --- 2. DRIVERE ---
+        # 2. DRIVERE
         for kat in KATEGORIER[1:]:
-            render_rad(kat, tittel_suffix="(Driver)")
+            ai_score, human_score, comment = render_rad(kat, valgt_fil, logg_df, tittel_suffix="(Driver)")
+            nye_data.append({'Filnavn': valgt_fil, 'Kategori': kat, 'Model_Score': ai_score, 'Human_Score': human_score, 'Kommentar': comment})
             st.divider()
-
+        
+        # --- LAGRING & VALIDERING ---
         if st.form_submit_button("💾 Lagre Evaluering", type="primary", use_container_width=True):
             ny_df = pd.DataFrame(nye_data)
-            hdr = not os.path.exists(LOGG_FIL)
-            ny_df.to_csv(LOGG_FIL, mode='a', header=hdr, index=False)
-            st.toast("Lagret! Listen oppdatert.", icon="✅")
-            st.rerun()
+            
+            # SJEKK PÅKREVD KOMMENTAR: Sjekk om noen av de 8 kommentarene er tomme
+            if (ny_df['Kommentar'].str.strip() == '').any():
+                st.error("❌ Alle 8 begrunnelsesfeltene må fylles ut. Vennligst sjekk alle kategorier.")
+            else:
+                # Hvis alt er OK, lagre
+                hdr = not os.path.exists(LOGG_FIL)
+                ny_df.to_csv(LOGG_FIL, mode='a', header=hdr, index=False)
+                st.toast("Lagret! Listen oppdatert.", icon="✅")
+                st.rerun()

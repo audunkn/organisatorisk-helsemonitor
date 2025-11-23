@@ -1,5 +1,5 @@
 outs:
-- md5: 3d191ad3d6d33f5a49722645c53256a4
-  size: 1776
+- md5: 1d5e59c92d045f901301c15cecd707a0
+  size: 1746
   hash: md5
   path: analyse_resultater.csv

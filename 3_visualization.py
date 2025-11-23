@@ -4,21 +4,23 @@ import seaborn as sns
 import numpy as np
 
 # 1. Laste inn data
-# Vi antar at filen ligger i samme mappe og bruker semikolon som skilletegn
+# Vi bruker semikolon som skilletegn slik CSV-filen ble generert
 df = pd.read_csv('analyse_resultater.csv', sep=';')
 
-# Definerer listen over driver-variablene (utelater filnavn og totalscore)
-drivers = ['Macro_Env', 'Supply_Chain', 'Manufacturing_Quality', 'Human_Capital', 
-           'Demand_Patterns', 'Pricing_Power', 'Strategic_Execution']
+# Definerer listen over driver-variablene (Norske navn fra CSV-en)
+drivers = [
+    'Makroforhold', 
+    'Forsyningskjede', 
+    'Produksjonskvalitet', 
+    'Kompetanse', 
+    'Etterspørselsmønstre', 
+    'Prismakt', 
+    'Strategigjennomføring'
+]
 
-# 2. Definere utvalget: "Low Stability"
-# Vi filtrerer ut alle referater som har en Overall Score lavere enn 2 (maks).
-# Dette fanger opp alt fra små problemer (1) til kriser (-1/0).
-low_stability_df = df[df['Overall_Stability_Score'] < 2]
-
-# 3. Beregne gjennomsnitt for driverne i denne gruppen
-# Dette gir oss "stemningen" for hver kategori kun i de problematiske møtene.
-driver_means = low_stability_df[drivers].mean().sort_values()
+# 2. Beregne gjennomsnitt for driverne for HELE datasettet
+# Vi sorterer verdiene slik at de med lavest score (størst risiko) havner øverst eller til venstre
+driver_means = df[drivers].mean().sort_values()
 
 # --- Visualisering ---
 
@@ -27,24 +29,36 @@ sns.set_style("whitegrid")
 fig, axes = plt.subplots(2, 1, figsize=(10, 12))
 plt.subplots_adjust(hspace=0.4)
 
-# Plot 1: Fordeling av Overall Score (Totaloversikten)
-sns.countplot(x='Overall_Stability_Score', data=df, palette='RdYlGn', ax=axes[0])
-axes[0].set_title('Oversikt: Overall Business Stability Score', fontsize=14, fontweight='bold')
+# --- Plot 1: Fordeling av Forretningsstabilitet (Totaloversikten) ---
+# NB: Sjekker at kolonnen finnes. I forrige steg kalte vi den "Forretningsstabilitet"
+sns.countplot(x='Forretningsstabilitet', data=df, palette='RdYlGn', ax=axes[0])
+
+axes[0].set_title('Fordeling: Forretningsstabilitet (Alle referater)', fontsize=14, fontweight='bold')
 axes[0].set_xlabel('Score (-2 til 2)', fontsize=12)
 axes[0].set_ylabel('Antall referater', fontsize=12)
 
 # Legger til tall over søylene
 for p in axes[0].patches:
-    axes[0].annotate(f'{int(p.get_height())}', (p.get_x() + p.get_width() / 2., p.get_height()),
-                     ha='center', va='center', xytext=(0, 5), textcoords='offset points')
+    if p.get_height() > 0: # Sjekk for å unngå tekst på tomme søyler
+        axes[0].annotate(f'{int(p.get_height())}', 
+                         (p.get_x() + p.get_width() / 2., p.get_height()),
+                         ha='center', va='center', xytext=(0, 5), textcoords='offset points')
 
-# Plot 2: Driverne for lav stabilitet
-# Fargelegging: De 3 nederste (verste) får rød farge, resten grå
-colors = ['red' if i < 3 else 'grey' for i in range(len(driver_means))]
+# --- Plot 2: Driver-analyse (Gjennomsnitt for alle) ---
+
+# Fargelegging: De 3 svakeste driverne (lavest score) får rød farge for å fremheve risiko, resten grå
+# Siden listen er sortert stigende, er de første elementene de laveste.
+colors = ['firebrick' if i < 3 else 'lightgrey' for i in range(len(driver_means))]
 
 sns.barplot(x=driver_means.values, y=driver_means.index, palette=colors, ax=axes[1])
-axes[1].set_title('Hovedårsaker til lav stabilitet (Score < 2)\n(Gjennomsnittsscore for drivere)', fontsize=14, fontweight='bold')
+
+axes[1].set_title('Gjennomsnittlig score per driver (Hele porteføljen)', fontsize=14, fontweight='bold')
 axes[1].set_xlabel('Gjennomsnittlig Score', fontsize=12)
+axes[1].set_xlim(-2, 2) # Setter fast akse fra -2 til 2 for enklere sammenligning
+
+# Legger til verdien ved siden av baren for tydelighet
+for i, v in enumerate(driver_means.values):
+    axes[1].text(v + 0.05, i, f'{v:.2f}', color='black', va='center', fontweight='bold')
 
 # Lagre eller vise
 plt.tight_layout()

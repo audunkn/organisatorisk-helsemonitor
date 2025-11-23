@@ -1,0 +1,50 @@
+Role: You are a Senior Financial Risk Analyst.
+    
+    Context: A preliminary overall Business Stability Score of {stability_score} has been assigned to this company based on the transcript below.
+    
+    Instruction: Analyze the following financial transcript to identify drivers of perceived business stability and risk profile. 
+    Your analysis should be consistent with and help explain the overall stability score of {stability_score}.
+    
+    Drivers for Classification:
+1. Macro-Environmental Conditions
+•	Definition: "The external economic and geopolitical climate supports business growth, characterized by stable inflation, favorable exchange rates, and open trade borders."
+•	Classify on a scale from +2 (Tailwinds/Stable) to -2 (Severe Headwinds): Based on references to inflation, interest rates, geopolitics (e.g., China relations, war), or FX impacts.
+•	Examples: "+2: FX tailwinds boosting revenue", "-2: High inflation and lockdowns in China hurting sales".
+2. Supply Chain Integrity
+•	Definition: "The ability to source raw materials and transport products efficiently, with minimal delays, shortages, or logistical cost spikes."
+•	Classify on a scale from +2 (Seamless/Optimized) to -2 (Disrupted/Constrained): Based on lead times, material availability, and logistics costs.
+•	Examples: "+2: Supply chain normalizing", "-2: Severe shortages of electronic components".
+3. Manufacturing & Regulatory Quality
+•	Definition: "Operations run at required capacity with full regulatory compliance, ensuring products meet quality standards without remediation needs."
+•	Classify on a scale from +2 (Capacity expanded/Compliant) to -2 (Bottlenecks/Regulatory Actions): Based on factory output, FDA/regulatory warnings, or production line failures.
+•	Examples: "+2: New plant fully operational", "-2: FDA warning letter received, production halted".
+4. Human Capital Dynamics
+•	Definition: "The ability to attract and retain necessary talent at sustainable wage levels, maintaining a stable and motivated workforce."
+•	Classify on a scale from +2 (High retention/Stable costs) to -2 (High attrition/Wage inflation): Based on hiring challenges, staff turnover, or salary cost pressure.
+•	Examples: "+2: Successful hiring of R&D team", "-2: High attrition in sales force, wage inflation pressure".
+5. Demand Patterns & Volume
+•	Definition: "Customer demand is organic, sustainable, and growing, without reliance on temporary surges (e.g., pandemic spikes) or artificial stocking."
+•	Classify on a scale from +2 (Accelerating/Organic Growth) to -2 (Deceleration/Destocking): Based on order intake, book-to-bill ratios, and normalization of demand.
+•	Examples: "+2: Strong organic demand across all regions", "-2: Customers destocking, significant drop in COVID-related revenues".
+6. Pricing Power & Profitability
+•	Definition: "The ability to maintain or expand margins by passing on input costs to customers through price increases without losing volume."
+•	Classify on a scale from +2 (Strong Pricing Power/Margin Expansion) to -2 (Margin Compression/Inability to Price): Based on gross margin discussions, OPEX absorption, and pricing strategies.
+•	Examples: "+2: Price increases fully offset inflation", "-2: Margins squeezed by marketing spend and raw material costs".
+7. Strategic Execution & Brand Health
+•	Definition: "Long-term strategic initiatives (M&A, Innovation, Brand positioning) are delivering expected value and maintaining market exclusivity."
+•	Classify on a scale from +2 (Successful Integration/Strong Brand) to -2 (Integration Failure/Brand Dilution): Based on M&A synergies, product launch success, or competitive threats.
+•	Examples: "+2: Integration exceeding expectations", "-2: Delays in new platform launch, competition eroding market share".
+
+
+    Rules:
+    - If uncertainty or no mention, classify as 0.
+    - Output MUST be a single line of comma-separated values representing drivers 1 through 7.
+    - No markdown, no text explanations, JUST the numbers.
+    - Your driver scores should align with and support the overall stability score of {stability_score}.
+    
+    Task: For each driver (1-7), classify the level from -2 to +2. Limit your response to the following comma-separated format representing drivers 1 through 7: Example Output: -2, -1, 0, +1, -2, 0, +2
+
+    Example Output: -2, -1, 0, +1, -2, 0, +2
+
+    Transcript:
+    {transcript_text}

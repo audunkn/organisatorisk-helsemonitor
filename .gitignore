@@ -1,0 +1,17 @@
+# risk_monitor/.gitignore
+
+# 1. Store Data (Håndteres av DVC)
+full_transcripts_output/
+analyse_resultater.csv
+*.dvc
+.dvc/cache/
+
+# 2. MLflow/Logger
+mlruns/
+mlflow.db
+
+# 3. Miljøer og Sikkerhet
+.env
+venv/
+__pycache__/
+*.pyc

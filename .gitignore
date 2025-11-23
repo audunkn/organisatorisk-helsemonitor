@@ -3,8 +3,13 @@
 # 1. Store Data (Håndteres av DVC)
 full_transcripts_output/
 analyse_resultater.csv
-*.dvc
+
+# Ignorer DVC cache og filer, men IKKE selve .dvc konfigurasjonsmappen
+# Ignorer all data som ligger i DVC cache
 .dvc/cache/
+
+# Ignorer DVC-metadata for data
+.dvc/tmp/
 
 # 2. MLflow/Logger
 mlruns/

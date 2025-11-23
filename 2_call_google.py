@@ -4,7 +4,7 @@ import pandas as pd
 import google.generativeai as genai
 import time
 import hashlib 
-import re  # <--- NY: Vi trenger denne for å finne tall i tekst
+import re 
 from dotenv import load_dotenv
 import mlflow 
 from mlflow import log_metric, log_param, log_artifact
@@ -20,13 +20,9 @@ if not API_KEY:
 
 genai.configure(api_key=API_KEY)
 
-MODEL_NAME = 'models/gemini-2.5-flash-preview-09-2025'
+# MODEL_NAME = 'models/gemini-2.5-flash-preview-09-2025'
+MODEL_NAME = ''
 PROMPT_DIR = "prompts" 
-
-DRIVER_COLUMNS = [
-    "Makroforhold", "Forsyningskjede", "Produksjonskvalitet", 
-    "Kompetanse", "Etterspørselsmønstre", "Prismakt", "Strategigjennomføring"
-]
 
 # --- Hjelpefunksjoner ---
 
@@ -35,37 +31,61 @@ def load_prompt(filename):
     with open(filepath, 'r', encoding='utf-8') as f:
         return f.read()
 
+def generate_content_with_retry(model, prompt, max_retries=5, initial_wait=30):
+    """
+    Prøver å kalle Gemini API-et. Hvis vi treffer Rate Limit (429),
+    venter vi og prøver igjen.
+    """
+    for attempt in range(max_retries):
+        try:
+            return model.generate_content(prompt)
+        except Exception as e:
+            error_str = str(e)
+            if "429" in error_str or "quota" in error_str.lower():
+                wait_time = initial_wait * (attempt + 1) # Øker ventetiden for hvert forsøk
+                print(f"⚠️ Traff Rate Limit (429). Venter {wait_time} sekunder før nytt forsøk ({attempt+1}/{max_retries})...")
+                time.sleep(wait_time)
+            else:
+                # Hvis det er en annen feil enn Rate Limit, kast den videre (eller print og gi opp)
+                print(f"❌ Uventet feil fra API: {e}")
+                return None
+    
+    print("❌ Ga opp etter maksimale gjentakelser.")
+    return None
+
 def get_stability_score(transcript_text):
-    """Henter Business Stability Score og bruker Regex for å finne tallet."""
+    """Henter Business Stability Score med Retry-logikk."""
     model = genai.GenerativeModel(MODEL_NAME)
     prompt = load_prompt('business_stability_prompt.txt').format(transcript_text=transcript_text) 
     
-    try:
-        response = model.generate_content(prompt)
-        # --- NY ROBUST METODE ---
-        # Finner alle tall (inkludert negative) i teksten
-        matches = re.findall(r'-?\d+', response.text)
-        if matches:
-            return int(matches[0]) # Returnerer det første tallet den finner
-        return 0
-    except Exception as e:
-        print(f"Feil under stabilitets-score: {e}")
-        return 0
+    # Bruker retry-funksjonen
+    response = generate_content_with_retry(model, prompt)
+    
+    if response and response.text:
+        try:
+            matches = re.findall(r'-?\d+', response.text)
+            if matches:
+                return int(matches[0])
+        except Exception as e:
+            print(f"Feil ved parsing av score: {e}")
+            
+    return 0
 
 def get_driver_analysis(transcript_text, stability_score):
-    """Henter driver-scorene."""
+    """Henter driver-scorene med Retry-logikk."""
     model = genai.GenerativeModel(MODEL_NAME)
     prompt = load_prompt('driver_analysis_prompt.txt').format(
         stability_score=stability_score, 
         transcript_text=transcript_text
     )
     
-    try:
-        response = model.generate_content(prompt)
+    # Bruker retry-funksjonen
+    response = generate_content_with_retry(model, prompt)
+    
+    if response and response.text:
         return response.text
-    except Exception as e:
-        print(f"Feil under driver-analyse: {e}")
-        return "" # Returnerer tom streng ved feil
+    
+    return ""
 
 # --- HOVEDFUNKSJON ---
 
@@ -85,7 +105,10 @@ def main():
 
         results = []
 
-        for filename in transcript_files:
+        for i, filename in enumerate(transcript_files):
+            # Vis fremdrift
+            print(f"[{i+1}/{len(transcript_files)}] Analyserer {os.path.basename(filename)}...")
+
             with open(filename, 'r', encoding='utf-8') as f:
                 content = f.read()
             
@@ -95,28 +118,21 @@ def main():
             # 2. Hent Drivere
             driver_raw = get_driver_analysis(content, stability_score)
             
-            # --- NY ROBUST PARSING AV LISTEN ---
+            # Parsing av tall
             try:
-                # Regex finner alle heltall (f.eks -2, 5, 0) i strengen, uavhengig av tekst rundt
                 numbers = re.findall(r'-?\d+', driver_raw)
-                
-                # Konverter til int
                 driver_scores = [int(n) for n in numbers]
                 
-                # Sørg for at vi har nøyaktig 7 tall. 
-                # Hvis vi fant for få, fyller vi på med 0. Hvis for mange, kutter vi.
                 if len(driver_scores) < 7:
                     driver_scores += [0] * (7 - len(driver_scores))
                 else:
-                    driver_scores = driver_scores[:7]
-                    
+                    driver_scores = driver_scores[:7]     
             except Exception as e:
-                print(f"Kunne ikke parse tall fra: '{driver_raw}'. Feil: {e}")
+                print(f"    Kunne ikke parse tall fra: '{driver_raw}'")
                 driver_scores = [0] * 7
 
-            print(f"Fil: {os.path.basename(filename)} -> Score: {stability_score}, Drivere: {driver_scores}")
+            print(f"    -> Score: {stability_score}, Drivere: {driver_scores}")
 
-            # Bygg datarad
             row = {
                 "Filnavn": filename,
                 "Makroforhold": driver_scores[0],
@@ -129,7 +145,9 @@ def main():
                 "Forretningsstabilitet": stability_score 
             }
             results.append(row)
-            time.sleep(1) # Skånsom mot API-et
+            
+            # VIKTIG: Lengre pause mellom hver fil for å unngå 429-feil igjen
+            time.sleep(5) 
 
         # Lagre
         df = pd.DataFrame(results)

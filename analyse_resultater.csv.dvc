@@ -1,0 +1,5 @@
+outs:
+- md5: b8c83b5800f15168ff929b2fba8c25b1
+  size: 336
+  hash: md5
+  path: analyse_resultater.csv

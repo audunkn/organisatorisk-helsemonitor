@@ -21,3 +21,6 @@ venv/
 __pycache__/
 *.pyc
 /full_transcripts_output
+
+# 4. Personlie notater og arbeidsfiler
+HUSK.txt

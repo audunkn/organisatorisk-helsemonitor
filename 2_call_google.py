@@ -9,7 +9,7 @@ import mlflow
 from mlflow import log_metric, log_param, log_artifact
 
 # --- KONFIGURASJON ---
-MLFLOW_EXPERIMENT_NAME = "Business Stability Analysis"
+MLFLOW_EXPERIMENT_NAME = "Business Stability Analysis - 25 calls"
 
 load_dotenv() 
 

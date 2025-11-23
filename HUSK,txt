@@ -1,0 +1,7 @@
+Husk å fullføre MLOps-syklusen etter hver kjøring:
+
+Git: git add 2_call_google.py (for å versjonere denne kodeendringen) + git commit.
+
+DVC: dvc add analyse_resultater.csv + dvc push (hvis du genererte nye resultater).
+
+Git: git add analyse_resultater.csv.dvc + git commit (for å versjonere datapekerne).

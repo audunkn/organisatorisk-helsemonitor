@@ -4,13 +4,13 @@ import pandas as pd
 import google.generativeai as genai
 import time
 import hashlib 
+import re  # <--- NY: Vi trenger denne for å finne tall i tekst
 from dotenv import load_dotenv
 import mlflow 
 from mlflow import log_metric, log_param, log_artifact
 
 # --- KONFIGURASJON ---
-# Endret navn til norsk. Dette blir "mappen" i MLflow.
-MLFLOW_EXPERIMENT_NAME = "Analyse av Forretningsstabilitet"
+MLFLOW_EXPERIMENT_NAME = "Analyse av Forretningsstabilitet - v1"
 
 load_dotenv() 
 
@@ -23,120 +23,100 @@ genai.configure(api_key=API_KEY)
 MODEL_NAME = 'models/gemini-2.5-flash-preview-09-2025'
 PROMPT_DIR = "prompts" 
 
-# Liste over driverkolonner (Norske navn)
-# Rekkefølgen MÅ matche output fra den engelske prompten (0-6)
 DRIVER_COLUMNS = [
-    "Makroforhold", 
-    "Forsyningskjede", 
-    "Produksjonskvalitet", 
-    "Kompetanse", 
-    "Etterspørselsmønstre", 
-    "Prismakt", 
-    "Strategigjennomføring"
+    "Makroforhold", "Forsyningskjede", "Produksjonskvalitet", 
+    "Kompetanse", "Etterspørselsmønstre", "Prismakt", "Strategigjennomføring"
 ]
 
 # --- Hjelpefunksjoner ---
 
 def load_prompt(filename):
-    """Henter promptteksten fra den dedikerte mappen."""
     filepath = os.path.join(PROMPT_DIR, filename)
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            return f.read()
-    except FileNotFoundError:
-        print(f"Feil: Prompt-filen '{filepath}' ble ikke funnet.")
-        raise
+    with open(filepath, 'r', encoding='utf-8') as f:
+        return f.read()
 
 def get_stability_score(transcript_text):
-    """
-    Kjører analysen ved å bruke prompt fra business_stability_prompt.txt
-    Output er et tall (Business Stability Score).
-    """
+    """Henter Business Stability Score og bruker Regex for å finne tallet."""
     model = genai.GenerativeModel(MODEL_NAME)
-    prompt_template = load_prompt('business_stability_prompt.txt')
-    prompt = prompt_template.format(transcript_text=transcript_text) 
+    prompt = load_prompt('business_stability_prompt.txt').format(transcript_text=transcript_text) 
     
     try:
         response = model.generate_content(prompt)
-        # Renser vekk Markdown-formatering (*, +) og punktum
-        clean_score = response.text.strip().replace('+', '').replace('*', '').replace('.', '')
-        return int(clean_score)
+        # --- NY ROBUST METODE ---
+        # Finner alle tall (inkludert negative) i teksten
+        matches = re.findall(r'-?\d+', response.text)
+        if matches:
+            return int(matches[0]) # Returnerer det første tallet den finner
+        return 0
     except Exception as e:
         print(f"Feil under stabilitets-score: {e}")
         return 0
 
 def get_driver_analysis(transcript_text, stability_score):
-    """
-    Kjører analysen ved å bruke prompt fra driver_analysis_prompt.txt
-    Output er en streng med tall separert av komma.
-    """
+    """Henter driver-scorene."""
     model = genai.GenerativeModel(MODEL_NAME)
-    prompt_template = load_prompt('driver_analysis_prompt.txt')
-    prompt = prompt_template.format(stability_score=stability_score, transcript_text=transcript_text)
+    prompt = load_prompt('driver_analysis_prompt.txt').format(
+        stability_score=stability_score, 
+        transcript_text=transcript_text
+    )
     
     try:
         response = model.generate_content(prompt)
-        return response.text.strip()
+        return response.text
     except Exception as e:
         print(f"Feil under driver-analyse: {e}")
-        return "0,0,0,0,0,0,0"
+        return "" # Returnerer tom streng ved feil
 
-
-# --- HOVEDFUNKSJON MED MLFLOW IMPLEMENTERING ---
+# --- HOVEDFUNKSJON ---
 
 def main():
-    # Setter eksperimentet (lager nytt hvis det ikke finnes)
     mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
 
     with mlflow.start_run():
+        print(f"MLflow Run startet: {MLFLOW_EXPERIMENT_NAME}")
         
-        print(f"MLflow Run startet i eksperimentet: '{MLFLOW_EXPERIMENT_NAME}'")
-        
-        # --- 1. Logg Prompts og Parametere ---
+        # Logg prompts
         stability_prompt = load_prompt('business_stability_prompt.txt')
         driver_prompt = load_prompt('driver_analysis_prompt.txt')
-
         log_param("model_name", MODEL_NAME)
-        # Hasher promptene for versjonskontroll i MLflow
-        log_param("stability_prompt_hash", hashlib.sha256(stability_prompt.encode()).hexdigest())
-        log_param("driver_prompt_hash", hashlib.sha256(driver_prompt.encode()).hexdigest())
         
-        # Lagrer selve prompt-filene
-        with open(os.path.join(PROMPT_DIR, 'business_stability_prompt.txt'), 'r') as f:
-             log_artifact(os.path.join(PROMPT_DIR, 'business_stability_prompt.txt'), artifact_path="prompts")
-        with open(os.path.join(PROMPT_DIR, 'driver_analysis_prompt.txt'), 'r') as f:
-             log_artifact(os.path.join(PROMPT_DIR, 'driver_analysis_prompt.txt'), artifact_path="prompts")
-
-
-        # --- 2. Kjør Analyse ---
-
         transcript_files = glob.glob("full_transcripts_output/*.txt")
-        if not transcript_files:
-            print("Fant ingen .txt filer.")
-            return
+        print(f"Analyserer {len(transcript_files)} filer...")
 
         results = []
-        print(f"Starter analyse av {len(transcript_files)} filer...")
 
         for filename in transcript_files:
-            
             with open(filename, 'r', encoding='utf-8') as f:
                 content = f.read()
             
-            # Henter score og driver-tall
+            # 1. Hent Hovedscore
             stability_score = get_stability_score(content)
+            
+            # 2. Hent Drivere
             driver_raw = get_driver_analysis(content, stability_score)
             
+            # --- NY ROBUST PARSING AV LISTEN ---
             try:
-                # Konverterer CSV-streng til liste med heltall
-                driver_scores = [int(x.strip()) for x in driver_raw.split(',')]
+                # Regex finner alle heltall (f.eks -2, 5, 0) i strengen, uavhengig av tekst rundt
+                numbers = re.findall(r'-?\d+', driver_raw)
                 
-                if len(driver_scores) != 7:
-                    driver_scores = driver_scores + [0]*(7-len(driver_scores))
-            except:
-                driver_scores = [0, 0, 0, 0, 0, 0, 0]
+                # Konverter til int
+                driver_scores = [int(n) for n in numbers]
+                
+                # Sørg for at vi har nøyaktig 7 tall. 
+                # Hvis vi fant for få, fyller vi på med 0. Hvis for mange, kutter vi.
+                if len(driver_scores) < 7:
+                    driver_scores += [0] * (7 - len(driver_scores))
+                else:
+                    driver_scores = driver_scores[:7]
+                    
+            except Exception as e:
+                print(f"Kunne ikke parse tall fra: '{driver_raw}'. Feil: {e}")
+                driver_scores = [0] * 7
 
-            # --- BYGGER DATARADEN (NORSKE FELTNAVN) ---
+            print(f"Fil: {os.path.basename(filename)} -> Score: {stability_score}, Drivere: {driver_scores}")
+
+            # Bygg datarad
             row = {
                 "Filnavn": filename,
                 "Makroforhold": driver_scores[0],
@@ -146,37 +126,20 @@ def main():
                 "Etterspørselsmønstre": driver_scores[4],
                 "Prismakt": driver_scores[5],
                 "Strategigjennomføring": driver_scores[6],
-                # Endret fra Overall_Stability_Score til Forretningsstabilitet
                 "Forretningsstabilitet": stability_score 
             }
             results.append(row)
-            time.sleep(1.5) # Litt pause for API-rate limit
+            time.sleep(1) # Skånsom mot API-et
 
-        # --- 3. Lagre og Logg Resultater ---
+        # Lagre
         df = pd.DataFrame(results)
         output_filename = "analyse_resultater.csv"
         df.to_csv(output_filename, index=False, sep=';') 
-
-        # --- LOGGING AV METRIKKER (REN NORSK, INGEN "AVG") ---
         
-        # Hovedscore
+        # Logg til MLflow
         avg_stability = df["Forretningsstabilitet"].mean()
-        # Her logger vi bare "Forretningsstabilitet". I konteksten av et "Run" er dette snittet.
         log_metric("Forretningsstabilitet", avg_stability)
         log_metric("Antall_analysert", len(df))
-        
-        # Driverscorer
-        driver_means = df[DRIVER_COLUMNS].mean()
-        print("\nResultater (Gjennomsnitt):")
-        print(f"  Hovedscore (Forretningsstabilitet): {avg_stability:.2f}")
-        
-        for driver in DRIVER_COLUMNS:
-            score = driver_means[driver]
-            # Logger navnet direkte (f.eks. "Kompetanse") uten prefix/suffix
-            log_metric(driver, score) 
-            print(f"  {driver}: {score:.2f}")
-
-        # Laster opp CSV-filen til MLflow
         log_artifact(output_filename) 
         
         print(f"\nFerdig! Resultater lagret i {output_filename}")

@@ -10,7 +10,7 @@ from dotenv import load_dotenv # Ny import for å lese .env
 # Last inn miljøvariabler fra .env fil (som er ignorert av Git)
 load_dotenv() 
 
-# Les nøkkelen fra miljøvariabelen (Sikreste metode)
+
 API_KEY = os.getenv("GEMINI_API_KEY") 
 
 if not API_KEY:

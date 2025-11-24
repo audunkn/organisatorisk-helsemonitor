@@ -17,7 +17,7 @@ CONFIG_NAME = "chunked"
 OUTPUT_DIR = "full_transcripts_output"
 
 # Set this to control how many unique, full-length transcripts are reconstructed
-NUM_CALLS_TO_PROCESS = 2 
+NUM_CALLS_TO_PROCESS = 26 
 
 # --- Progress Bar Configuration ---
 PROGRESS_UPDATE_INTERVAL = 500 # Print status every X segments processed

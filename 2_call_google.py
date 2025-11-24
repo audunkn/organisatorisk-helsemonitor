@@ -10,7 +10,7 @@ import mlflow
 from mlflow import log_metric, log_param, log_artifact
 
 # --- KONFIGURASJON ---
-MLFLOW_EXPERIMENT_NAME = "Analyse av Forretningsstabilitet - v2"
+MLFLOW_EXPERIMENT_NAME = "Organisatorisk helsemonitor med KI - v1"
 
 load_dotenv() 
 
@@ -20,7 +20,8 @@ if not API_KEY:
 
 genai.configure(api_key=API_KEY)
 
-MODEL_NAME = 'models/gemini-2.5-flash-preview-09-2025'
+# MODEL_NAME = 'models/gemini-2.5-flash-preview-09-2025'
+MODEL_NAME = 'gemini-2.5-flash'
 PROMPT_DIR = "prompts" 
 
 # --- Hjelpefunksjoner ---

@@ -34,7 +34,7 @@ plt.subplots_adjust(hspace=0.5)
 # -----------------------------------------------------------------
 
 # Definisjon av 'Forretningsstabilitet' (Forkortet versjon)
-subtitle_text = "Stabilitet vurdert ut fra robusthet og fremtidsutsikter."
+subtitle_text = "Forretningsstabilitet vurdert ut fra robusthet og fremtidsutsikter."
 
 # 1. Sett hovedtittel
 axes[0].set_title(
@@ -66,7 +66,7 @@ sns.countplot(
 
 
 
-axes[0].set_ylabel('Antall møtereferater', fontsize=12)
+axes[0].set_ylabel('Antall referater', fontsize=12)
 
 # Legger til tall over søylene
 for p in axes[0].patches:
@@ -100,8 +100,8 @@ sns.barplot(
     legend=False               
 )
 
-axes[1].set_title('Gjennomsnittlig score pr driver (Alle møtereferater)', fontsize=14, fontweight='bold')
-axes[1].set_xlabel('Gjennomsnittlig score', fontsize=12)
+axes[1].set_title('Gjennomsnittlig score per driver (Hele porteføljen)', fontsize=14, fontweight='bold')
+axes[1].set_xlabel('Gjennomsnittlig Score', fontsize=12)
 axes[1].set_xlim(-2, 2) 
 axes[1].set_ylabel('') 
 

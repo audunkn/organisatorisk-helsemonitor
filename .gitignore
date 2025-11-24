@@ -24,3 +24,7 @@ __pycache__/
 
 # 4. Personlie notater og arbeidsfiler
 HUSK.txt
+evaluering_logg.csv
+
+# 5. Prompt filer (men ikke mappen selv)
+prompts/*.txt

@@ -10,7 +10,7 @@ import mlflow
 from mlflow import log_metric, log_param, log_artifact
 
 # --- KONFIGURASJON ---
-MLFLOW_EXPERIMENT_NAME = "Organisatorisk helsemonitor med KI - v2"
+MLFLOW_EXPERIMENT_NAME = "Organisatorisk helsemonitor med KI - v3"
 
 load_dotenv() 
 
@@ -139,8 +139,8 @@ def main():
                 "Forsyningskjede": driver_scores[1],
                 "Produksjonskvalitet": driver_scores[2],
                 "Kompetanse": driver_scores[3],
-                "Etterspørselsmønstre": driver_scores[4],
-                "Prismakt": driver_scores[5],
+                "Etterspørsel": driver_scores[4],
+                "Marginstyring": driver_scores[5],
                 "Strategigjennomføring": driver_scores[6],
                 "Forretningsstabilitet": stability_score 
             }
@@ -167,8 +167,8 @@ def main():
             "Forsyningskjede": df["Forsyningskjede"].mean(),
             "Produksjonskvalitet": df["Produksjonskvalitet"].mean(),
             "Kompetanse": df["Kompetanse"].mean(),
-            "Etterspørselsmønstre": df["Etterspørselsmønstre"].mean(),
-            "Prismakt": df["Prismakt"].mean(),
+            "Etterspørsel": df["Etterspørsel"].mean(),
+            "Marginstyring": df["Marginstyring"].mean(),
             "Strategigjennomføring": df["Strategigjennomføring"].mean(),
         }
         

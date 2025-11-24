@@ -10,8 +10,8 @@ TEKST_MAPPE = 'full_transcripts_output'
 
 KATEGORIER = [
     "Forretningsstabilitet", "Makroforhold", "Forsyningskjede", 
-    "Produksjonskvalitet", "Kompetanse", "Etterspørselsmønstre", 
-    "Prismakt", "Strategigjennomføring"
+    "Produksjonskvalitet", "Kompetanse", "Etterspørsel", 
+    "Marginstyring", "Strategigjennomføring"
 ]
 
 # --- HJELPEFUNKSJONER ---
@@ -30,14 +30,24 @@ def last_logg():
 
 def beregn_metrikker(logg_df):
     if logg_df.empty: return 0, 0, 0, 0
-    y_true = logg_df['Human_Score'].astype(int)
-    y_pred = logg_df['Model_Score'].astype(int)
+
+    # --- Implementert endring: Filtrer til kun den siste (reviderte) vurderingen ---
+    # Sorterer dataen implisitt etter rekkefølgen de ble lagt til (som er den siste) 
+    # og beholder kun den siste vurderingen for hver unike kombinasjon av Filnavn og Kategori.
+    logg_df_siste = logg_df.drop_duplicates(subset=['Filnavn', 'Kategori'], keep='last')
+    
+    if logg_df_siste.empty: return 0, 0, 0, 0
+    
+    y_true = logg_df_siste['Human_Score'].astype(int)
+    y_pred = logg_df_siste['Model_Score'].astype(int)
     
     precision = precision_score(y_true, y_pred, average='weighted', zero_division=0)
     recall = recall_score(y_true, y_pred, average='weighted', zero_division=0)
     accuracy = accuracy_score(y_true, y_pred)
-    antall_filer = logg_df['Filnavn'].nunique()
+    antall_filer = logg_df_siste['Filnavn'].nunique() # Bruker den filtrerte DFen
+    
     return precision, recall, accuracy, antall_filer
+    # --- Slutt på implementert endring ---
 
 def les_tekstfil(filnavn_fra_csv):
     if os.path.exists(filnavn_fra_csv): sti = filnavn_fra_csv
@@ -71,7 +81,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("🕵️ Human-in-the-loop evaluering")
-st.markdown("Vurder risikoen basert på teksten. Fasit-vurderingene **og kommentarene** brukes for å forbedre AI-ens instruksjoner.")
+st.markdown("Din vurdering og begrunnelse brukes for å forbedre instruksjonene som gis til KI-løsningen.")
 
 df = last_data()
 logg_df = last_logg()
@@ -82,15 +92,14 @@ if df.empty: st.stop()
 st.sidebar.header("Innstillinger")
 skjul_ferdige = st.sidebar.checkbox("Skjul ferdig evaluerte filer", value=False)
 st.sidebar.divider()
-st.sidebar.header("📈 Ytelse (Live)")
+st.sidebar.header("📈 Forankring")
 p, r, a, c = beregn_metrikker(logg_df)
 c1, c2 = st.sidebar.columns(2)
 c1.metric("Filer Evaluert", c) 
 c2.metric("Nøyaktighet", f"{a:.1%}")
-st.sidebar.metric("Precision", f"{p:.1%}")
-st.sidebar.metric("Recall", f"{r:.1%}")
+st.sidebar.metric("Presisjon", f"{p:.1%}")
+st.sidebar.metric("Sensitivitet", f"{r:.1%}")
 st.sidebar.markdown("---")
-st.sidebar.warning("⚠️ Danger Zone")
 if st.sidebar.button("🗑️ Slett historikk og start på nytt"):
     nullstill_historikk()
     st.rerun()
@@ -144,6 +153,7 @@ with col2:
             default_val = 0 
             kommentar_historikk = ""
             
+            # Finner siste vurdering (hvis den finnes) for å forhåndsutfylle skjemaet
             eksisterende_rad = logg_df[(logg_df['Filnavn'] == valgt_fil) & (logg_df['Kategori'] == kategori)]
             if not eksisterende_rad.empty:
                 siste_rad = eksisterende_rad.iloc[-1]
@@ -174,17 +184,17 @@ with col2:
         
         # 1. OVERORDNET KONKLUSJON
         with st.container(border=True):
-            st.info("📊 **Overordnet Konklusjon**")
+            st.info(" **Overordnet Konklusjon**")
             ai_score, human_score, comment = render_rad(KATEGORIER[0], valgt_fil, logg_df)
             nye_data.append({'Filnavn': valgt_fil, 'Kategori': KATEGORIER[0], 'Model_Score': ai_score, 'Human_Score': human_score, 'Kommentar': comment})
 
         st.write("")
-        st.markdown("👇 **Underliggende Drivere**")
+        st.markdown("**Underliggende Drivere**")
         st.write("")
 
         # 2. DRIVERE
         for kat in KATEGORIER[1:]:
-            ai_score, human_score, comment = render_rad(kat, valgt_fil, logg_df, tittel_suffix="(Driver)")
+            ai_score, human_score, comment = render_rad(kat, valgt_fil, logg_df, tittel_suffix="(driver)")
             nye_data.append({'Filnavn': valgt_fil, 'Kategori': kat, 'Model_Score': ai_score, 'Human_Score': human_score, 'Kommentar': comment})
             st.divider()
         
@@ -196,7 +206,7 @@ with col2:
             if (ny_df['Kommentar'].str.strip() == '').any():
                 st.error("❌ Alle 8 begrunnelsesfeltene må fylles ut. Vennligst sjekk alle kategorier.")
             else:
-                # Hvis alt er OK, lagre
+                # Hvis alt er OK, lagre (legger til nederst i filen)
                 hdr = not os.path.exists(LOGG_FIL)
                 ny_df.to_csv(LOGG_FIL, mode='a', header=hdr, index=False)
                 st.toast("Lagret! Listen oppdatert.", icon="✅")

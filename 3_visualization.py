@@ -34,11 +34,11 @@ plt.subplots_adjust(hspace=0.5)
 # -----------------------------------------------------------------
 
 # Definisjon av 'Forretningsstabilitet' (Forkortet versjon)
-subtitle_text = "Forretningsstabilitet vurdert ut fra robusthet og fremtidsutsikter."
+subtitle_text = "Stabilitet vurdert ut fra robusthet og fremtidsutsikter."
 
 # 1. Sett hovedtittel
 axes[0].set_title(
-    'Forretningsstabilitet pr kategori (-2 til +2)',
+    'Kvantiativ stabilitetsvurdering - antall pr kategori (-2 til +2)',
     fontsize=14, 
     fontweight='bold',
     loc='center', 
@@ -56,17 +56,17 @@ axes[0].text(
 
 # Fiks for FutureWarning: Setter hue til 'Forretningsstabilitet'
 sns.countplot(
-    x='Forretningsstabilitet', 
+    x='Stabilitet', 
     data=df, 
     palette='RdYlGn', 
     ax=axes[0],
-    hue='Forretningsstabilitet', 
+    hue='Stabilitet', 
     legend=False                   
 )
 
 
 
-axes[0].set_ylabel('Antall referater', fontsize=12)
+axes[0].set_ylabel('Antall møtereferater', fontsize=12)
 
 # Legger til tall over søylene
 for p in axes[0].patches:
@@ -100,7 +100,7 @@ sns.barplot(
     legend=False               
 )
 
-axes[1].set_title('Gjennomsnittlig score per driver (Hele porteføljen)', fontsize=14, fontweight='bold')
+axes[1].set_title('Gjennomsnittlig score pr driver (Alle møtereferater)', fontsize=14, fontweight='bold')
 axes[1].set_xlabel('Gjennomsnittlig Score', fontsize=12)
 axes[1].set_xlim(-2, 2) 
 axes[1].set_ylabel('') 

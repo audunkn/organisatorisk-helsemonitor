@@ -10,7 +10,7 @@ import mlflow
 from mlflow import log_metric, log_param, log_artifact
 
 # --- KONFIGURASJON ---
-MLFLOW_EXPERIMENT_NAME = "Organisatorisk helsemonitor med KI - v1"
+MLFLOW_EXPERIMENT_NAME = "Organisatorisk helsemonitor med KI - v2"
 
 load_dotenv() 
 
@@ -149,18 +149,38 @@ def main():
             # VIKTIG: Lengre pause mellom hver fil for å unngå 429-feil igjen
             time.sleep(5) 
 
-        # Lagre
+        # Lagre resultater til DataFrame og CSV
         df = pd.DataFrame(results)
         output_filename = "analyse_resultater.csv"
         df.to_csv(output_filename, index=False, sep=';') 
         
         # Logg til MLflow
+        
+        # 1. Hovedmetrikker
         avg_stability = df["Forretningsstabilitet"].mean()
         log_metric("Forretningsstabilitet", avg_stability)
         log_metric("Antall_analysert", len(df))
+        
+        # 2. Driver-metrikker (NY KODE)
+        driver_metrics = {
+            "Makroforhold": df["Makroforhold"].mean(),
+            "Forsyningskjede": df["Forsyningskjede"].mean(),
+            "Produksjonskvalitet": df["Produksjonskvalitet"].mean(),
+            "Kompetanse": df["Kompetanse"].mean(),
+            "Etterspørselsmønstre": df["Etterspørselsmønstre"].mean(),
+            "Prismakt": df["Prismakt"].mean(),
+            "Strategigjennomføring": df["Strategigjennomføring"].mean(),
+        }
+        
+        # Logger hver driver-score individuelt
+        for name, avg_score in driver_metrics.items():
+            log_metric(name, avg_score)
+        
+        # 3. Logg artefakt
         log_artifact(output_filename) 
         
         print(f"\nFerdig! Resultater lagret i {output_filename}")
+        print(f"MLflow Run avsluttet. Alle metrikker, inkludert 7 drivere, ble logget.")
 
 if __name__ == "__main__":
     main()

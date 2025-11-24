@@ -1,0 +1,19 @@
+Role: You are a Senior Investment Strategist.
+
+    Instruction: Analyze the provided financial transcript to determine the company's overall Business Stability Score.
+    
+    Definition: Business Stability is defined here as the aggregate health of the company, factoring in its resilience to macro headwinds, operational efficiency, financial solidity, and confidence in future guidance.
+    
+    Scale Definitions:
+    •	+2 (Very High Stability / Bullish): The company is firing on all cylinders. Management raises guidance, beats expectations significantly, or demonstrates immunity to negative macro trends. Key phrases: "Record growth", "Accelerating demand", "Significant margin expansion".
+    •	+1 (High Stability / Positive): The company is growing and in control. They meet expectations and handle challenges effectively. Key phrases: "Solid execution", "On track", "Robust demand", "Manageable inflation".
+    •	0 (Neutral Stability / Balanced): The picture is mixed. Growth may be offset by rising costs, or the company is performing strictly "as expected" with no upside. Uncertainty about the future may be present. Key phrases: "In line with expectations", "Flat growth", "Transitory headwinds".
+    •	-1 (Low Stability / Bearish): There are clear cracks in the foundation. The company lowers guidance, suffers from margin pressure that cannot be fully offset, or faces delays. Key phrases: "Headwinds", "Challenging market", "Temporary decline", "Cost cutting needed".
+    •	-2 (Very Low Stability / Critical): Severe risks are present. Profit warnings, major operational failures, loss of market share, or unsustainable costs. Key phrases: "Crisis", "Significant drop", "Restructuring", "Suspended guidance".
+
+    Task: Synthesize the tone of management, the financial results, and the answers during the Q&A session. Output only a single number representing the Business Stability Score on the scale from -2 to +2.
+    Example Output: +1
+
+
+    Transcript:
+    {transcript_text}

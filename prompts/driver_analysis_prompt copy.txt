@@ -1,4 +1,4 @@
-Rolle: Du er en Senior Finansiell Risikoanalytiker.
+RRolle: Du er en Senior Finansiell Risikoanalytiker.
 
 Kontekst: En foreløpig samlet Forretningsstabilitetsscore på {stability_score} er tildelt dette selskapet basert på transkriptet nedenfor.
 
@@ -6,7 +6,7 @@ Instruksjon: Analyser følgende finansielle transkript for å identifisere drivk
 
 Drivkrefter for Klassifisering:
 
-1. Makroøkonomiske Forhold
+Makroøkonomiske Forhold
 
 Definisjon: «Det eksterne økonomiske og geopolitiske klimaet støtter forretningsvekst, kjennetegnet av stabil inflasjon, gunstige valutakurser og åpen handel.»
 
@@ -14,7 +14,7 @@ Klassifiser på en skala fra +2 (Medvind/Stabile) til -2 (Alvorlig Motvind): Bas
 
 Eksempler: «+2: Valutamedvind øker inntektene», «-2: Høy inflasjon og nedstengninger i Kina skader salget».
 
-2. Integritet i Forsyningskjeden
+Integritet i Forsyningskjeden
 
 Definisjon: «Evnen til å anskaffe råmaterialer og transportere produkter effektivt, med minimale forsinkelser, mangler eller logistiske kostnadsøkninger.»
 
@@ -22,7 +22,7 @@ Klassifiser på en skala fra +2 (Sømløs/Optimalisert) til -2 (Forstyrret/Begre
 
 Eksempler: «+2: Forsyningskjeden normaliseres», «-2: Alvorlig mangel på elektroniske komponenter».
 
-3. Produksjons- og Regulatorisk Kvalitet
+Produksjons- og Regulatorisk Kvalitet
 
 Definisjon: «Driften kjører med nødvendig kapasitet og full regulatorisk overholdelse, og sikrer at produkter oppfyller kvalitetsstandarder uten behov for utbedring.»
 
@@ -30,7 +30,7 @@ Klassifiser på en skala fra +2 (Kapasitet utvidet/I samsvar) til -2 (Flaskehals
 
 Eksempler: «+2: Ny fabrikk er fullt operativ», «-2: FDA-advarselsbrev mottatt, produksjonen stanset».
 
-4. Dynamikk i Humankapital
+Dynamikk i Humankapital
 
 Definisjon: «Evnen til å tiltrekke og beholde nødvendig talent til bærekraftige lønnsnivåer, og opprettholde en stabil og motivert arbeidsstyrke.»
 
@@ -38,7 +38,7 @@ Klassifiser på en skala fra +2 (Høy retensjon/Stabile kostnader) til -2 (Høy 
 
 Eksempler: «+2: Vellykket ansettelse av R&D-team», «-2: Høy slitasje i salgsstyrken, press fra lønnsinflasjon».
 
-5. Etterspørselsmønstre og Volum
+Etterspørselsmønstre og Volum
 
 Definisjon: «Kundeetterspørselen er organisk, bærekraftig og voksende, uten avhengighet av midlertidige økninger (f.eks. pandemitopper) eller kunstig lagerpåfylling.»
 
@@ -46,7 +46,7 @@ Klassifiser på en skala fra +2 (Akselererende/Organisk Vekst) til -2 (Akseleras
 
 Eksempler: «+2: Sterk organisk etterspørsel i alle regioner», «-2: Kunder reduserer lager, betydelig fall i COVID-relaterte inntekter».
 
-6. Prisingsmakt og Lønnsomhet
+Prisingsmakt og Lønnsomhet
 
 Definisjon: «Evnen til å opprettholde eller utvide marginer ved å velte innsatskostnader over på kundene gjennom prisøkninger uten å miste volum.»
 
@@ -54,7 +54,7 @@ Klassifiser på en skala fra +2 (Sterk Prisingsmakt/Marginutvidelse) til -2 (Mar
 
 Eksempler: «+2: Prisøkninger kompenserer fullt ut for inflasjon», «-2: Marginer presses av markedsføringsutgifter og råvarekostnader».
 
-7. Strategisk Gjennomføring og Merkevarehelse
+Strategisk Gjennomføring og Merkevarehelse
 
 Definisjon: «Langsiktige strategiske initiativer (Fusjoner og oppkjøp, Innovasjon, Merkevareposisjonering) leverer forventet verdi og opprettholder markedseksklusivitet.»
 
@@ -62,7 +62,7 @@ Klassifiser på en skala fra +2 (Vellykket Integrasjon/Sterk Merkevare) til -2 (
 
 Eksempler: «+2: Integrasjon overgår forventningene», «-2: Forsinkelser i lansering av ny plattform, konkurranse eroderer markedsandeler».
 
-## Regler ##:
+Regler:
 
 Hvis usikkerhet eller ingen omtale, klassifiser som 0.
 
@@ -72,7 +72,7 @@ Ingen markdown, ingen tekstforklaringer, KUN tallene.
 
 Dine drivkraft-scorer skal samsvare med og støtte den samlede stabilitetsscoren på {stability_score}.
 
-## Oppgave:## Klassifiser nivået for hver drivkraft (1-7) fra -2 til +2. Begrens svaret ditt til følgende komma-separerte format som representerer drivkreftene 1 til 7:
+Oppgave: Klassifiser nivået for hver drivkraft (1-7) fra -2 til +2. Begrens svaret ditt til følgende komma-separerte format som representerer drivkreftene 1 til 7:
 
 Eksempel på svar: -2, -1, 0, +1, -2, 0, +2
 

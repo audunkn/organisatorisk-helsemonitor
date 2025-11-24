@@ -1,6 +1,6 @@
 outs:
-- md5: 4174c743c5b148f669344298cceec76d.dir
-  size: 1291045
-  nfiles: 25
+- md5: 0f74238a20534016d55152027dee302a.dir
+  size: 79124
+  nfiles: 2
   hash: md5
   path: full_transcripts_output

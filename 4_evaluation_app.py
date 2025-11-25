@@ -9,9 +9,9 @@ LOGG_FIL = 'evaluering_logg.csv'
 TEKST_MAPPE = 'full_transcripts_output'
 
 KATEGORIER = [
-    "Forretningsstabilitet", "Makroforhold", "Forsyningskjede", 
-    "Produksjonskvalitet", "Kompetanse", "Etterspørsel", 
-    "Marginstyring", "Strategigjennomføring"
+    "Stabilitet", "Makroforhold", "Forsyningskjede", 
+    "Produksjonskvalitet", "Kompetanse", "Etterspørselsmønstre", 
+    "Prismakt", "Strategigjennomføring"
 ]
 
 # --- HJELPEFUNKSJONER ---
@@ -80,7 +80,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🕵️ Human-in-the-loop evaluering")
 st.markdown("Din vurdering og begrunnelse brukes for å forbedre instruksjonene som gis til KI-løsningen.")
 
 df = last_data()
@@ -92,7 +91,7 @@ if df.empty: st.stop()
 st.sidebar.header("Innstillinger")
 skjul_ferdige = st.sidebar.checkbox("Skjul ferdig evaluerte filer", value=False)
 st.sidebar.divider()
-st.sidebar.header("📈 Forankring")
+st.sidebar.header("Forankring av KI mot fasit fra Domeneekspert")
 p, r, a, c = beregn_metrikker(logg_df)
 c1, c2 = st.sidebar.columns(2)
 c1.metric("Filer Evaluert", c) 
@@ -138,7 +137,7 @@ with col1:
     st.text_area("Innhold", tekst, height=800)
 
 with col2:
-    st.subheader("Dine Vurderinger")
+    st.subheader("Dine vurderinger")
     with st.form("eval_form"):
         nye_data = []
         options = [-2, -1, 0, 1, 2]

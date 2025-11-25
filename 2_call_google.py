@@ -128,7 +128,7 @@ def main():
                 else:
                     driver_scores = driver_scores[:7]     
             except Exception as e:
-                print(f"    Kunne ikke parse tall fra: '{driver_raw}'")
+                print(f"Kunne ikke parse tall fra: '{driver_raw}'")
                 driver_scores = [0] * 7
 
             print(f"    -> Score: {stability_score}, Drivere: {driver_scores}")
@@ -139,8 +139,8 @@ def main():
                 "Forsyningskjede": driver_scores[1],
                 "Produksjonskvalitet": driver_scores[2],
                 "Kompetanse": driver_scores[3],
-                "Etterspørsel": driver_scores[4],
-                "Marginstyring": driver_scores[5],
+                "Etterspørselsmønstre": driver_scores[4],
+                "Prismakt": driver_scores[5],
                 "Strategigjennomføring": driver_scores[6],
                 "Forretningsstabilitet": stability_score 
             }

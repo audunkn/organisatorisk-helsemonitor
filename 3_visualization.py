@@ -5,6 +5,7 @@ import numpy as np
 
 # 1. Laste inn data
 try:
+    # OBS: Denne filen må eksistere for at skriptet skal kjøre
     df = pd.read_csv('analyse_resultater.csv', sep=';')
 except FileNotFoundError:
     print("FEIL: Filen 'analyse_resultater.csv' ble ikke funnet. Sjekk filnavn og plassering.")
@@ -33,10 +34,9 @@ plt.subplots_adjust(hspace=0.5)
 # 📊 Plot 1: Fordeling av Forretningsstabilitet
 # -----------------------------------------------------------------
 
-# Definisjon av 'Forretningsstabilitet' (Forkortet versjon)
 subtitle_text = "Stabilitet vurdert ut fra robusthet og fremtidsutsikter."
 
-# 1. Sett hovedtittel
+
 axes[0].set_title(
     'Kvantiativ stabilitetsvurdering - antall pr kategori (-2 til +2)',
     fontsize=14, 
@@ -54,17 +54,17 @@ axes[0].text(
 )
 
 
-# Fiks for FutureWarning: Setter hue til 'Forretningsstabilitet'
 sns.countplot(
     x='Stabilitet', 
     data=df, 
     palette='RdYlGn', 
     ax=axes[0],
     hue='Stabilitet', 
-    legend=False                   
+    legend=False             
 )
 
 
+axes[0].set_xlabel('') 
 
 axes[0].set_ylabel('Antall møtereferater', fontsize=12)
 
@@ -94,13 +94,13 @@ sns.barplot(
     x='Score', 
     y='Driver', 
     data=temp_df, 
-    hue='Color_Hue',           
+    hue='Color_Hue',            
     palette=custom_palette_plot2,    
     ax=axes[1],
-    legend=False               
+    legend=False             
 )
 
-axes[1].set_title('Gjennomsnittlig score pr driver (Alle møtereferater)', fontsize=14, fontweight='bold')
+axes[1].set_title('Drivere av stabilitet - gjennomsnittlig score pr driver (Alle møtereferater)', fontsize=14, fontweight='bold')
 axes[1].set_xlabel('Gjennomsnittlig Score', fontsize=12)
 axes[1].set_xlim(-2, 2) 
 axes[1].set_ylabel('') 

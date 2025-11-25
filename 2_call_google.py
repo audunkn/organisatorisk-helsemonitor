@@ -87,7 +87,6 @@ def get_driver_analysis(transcript_text, stability_score):
     
     return ""
 
-# --- HOVEDFUNKSJON ---
 
 def main():
     mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)

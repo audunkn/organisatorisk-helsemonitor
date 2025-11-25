@@ -21,7 +21,7 @@ drivers = [
     'Strategigjennomføring'
 ]
 
-# 2. Beregne gjennomsnitt for driverne
+
 driver_means = df[drivers].mean().sort_values()
 
 # --- Visualisering ---

@@ -67,7 +67,7 @@ def format_tall(val):
 # --- APP LAYOUT ---
 st.set_page_config(layout="wide", page_title="Risiko Evaluering (Blindtest)")
 
-# --- CSS: Tykkere ramme rundt hovedkonklusjon ---
+
 st.markdown("""
     <style>
     [data-testid="stVerticalBlockBorderWrapper"] {
